@@ -51,6 +51,8 @@
                 box-shadow: none;
                 border: none;
             }
+            /* Hide print-specific inputs */
+            .no-print { display: none !important; }
         }
     </style>
 </head>
@@ -71,6 +73,9 @@
             <button id="tab-ledger-btn" onclick="showTab('ledger')" class="px-4 py-2 text-lg font-medium text-gray-500 hover:text-gray-700 transition duration-300">
                 2. வரவு கண்காணிப்பான் & அறிக்கைகள்
             </button>
+            <button id="tab-settings-btn" onclick="showTab('settings')" class="px-4 py-2 text-lg font-medium text-gray-500 hover:text-gray-700 transition duration-300">
+                3. அமைப்புகள்
+            </button>
         </div>
 
         <!-- Module 1: Invoice Generation -->
@@ -78,46 +83,67 @@
             <!-- Header Section -->
             <div class="flex justify-between items-start mb-6 border-b pb-4">
                 <div class="text-left">
-                    <p class="text-4xl font-extrabold text-blue-600">கிளினிக் இன்வாய்ஸ்</p>
+                    <p class="text-4xl font-extrabold text-blue-600">இன்வாய்ஸ்</p>
                 </div>
-                <div class="text-right">
-                    <h2 class="text-2xl font-bold text-gray-800">உங்கள் மருத்துவமனை பெயர்</h2>
-                    <p class="text-sm text-gray-500">தலைமை அலுவலக முகவரி, நகர்</p>
-                    <p class="text-sm text-gray-500">தொலைபேசி: 98765 43210 | மின்னஞ்சல்: info@clinic.com</p>
+                <div class="text-right space-y-1">
+                    <!-- Editable Hospital Name -->
+                    <input id="hospital-name" type="text" class="text-2xl font-bold text-gray-800 text-right p-1 border rounded-md" value="உங்கள் மருத்துவமனை பெயர்" onblur="saveHospitalDetails('name')">
+                    <!-- Editable Address -->
+                    <textarea id="hospital-address" class="text-sm text-gray-500 text-right p-1 border rounded-md w-full" rows="1" onblur="saveHospitalDetails('address')">தலைமை அலுவலக முகவரி, நகர்</textarea>
+                    <!-- Editable Contact Info -->
+                    <div class="flex flex-col items-end">
+                        <input id="hospital-phone" type="text" class="text-sm text-gray-500 text-right p-1 border rounded-md" placeholder="தொலைபேசி: 98765 43210" onblur="saveHospitalDetails('phone')" value="98765 43210">
+                        <input id="hospital-email" type="email" class="text-sm text-gray-500 text-right p-1 border rounded-md mt-1" placeholder="மின்னஞ்சல்: info@clinic.com" onblur="saveHospitalDetails('email')" value="info@clinic.com">
+                    </div>
                 </div>
             </div>
 
             <!-- Patient and Doctor Details -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <!-- Patient Details -->
-                <div class="p-4 border rounded-lg bg-gray-50">
+                <div class="p-4 border rounded-lg bg-gray-50 md:col-span-2">
                     <h3 class="font-semibold text-lg mb-2 text-gray-700 border-b pb-1">நோயாளி விவரங்கள்</h3>
-                    <div class="space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <label class="block">
                             <span class="text-sm text-gray-600">நோயாளி பெயர்:</span>
                             <input id="patient-name" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border" placeholder="பெயர்" required>
                         </label>
                         <label class="block">
                             <span class="text-sm text-gray-600">நோயாளி முகவரி:</span>
-                            <textarea id="patient-address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border" rows="2" placeholder="முகவரி"></textarea>
+                            <textarea id="patient-address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border" rows="1" placeholder="முகவரி"></textarea>
                         </label>
                     </div>
                 </div>
 
-                <!-- Doctor/Invoice Details -->
-                <div class="p-4 border rounded-lg bg-gray-50">
-                    <h3 class="font-semibold text-lg mb-2 text-gray-700 border-b pb-1">மருத்துவர் & இன்வாய்ஸ் விவரங்கள்</h3>
+                <!-- Next Appointment Details (New Table) -->
+                <div class="p-4 border rounded-lg bg-yellow-50">
+                    <h3 class="font-semibold text-lg mb-2 text-gray-700 border-b pb-1">அடுத்த சந்திப்பு</h3>
                     <div class="space-y-3">
-                        <p class="text-sm text-gray-600">இன்வாய்ஸ் எண்: <span id="invoice-id-display" class="font-mono font-bold text-blue-600">IN-XXXXX</span></p>
                         <label class="block">
-                            <span class="text-sm text-gray-600">மருத்துவர் பெயர்:</span>
-                            <input id="doctor-name" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border" value="டாக்டர். விஸ்வா" placeholder="மருத்துவர் பெயர்" required>
+                            <span class="text-sm text-gray-600">தேதி:</span>
+                            <input id="next-appointment-date" type="date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 p-2 border">
                         </label>
                         <label class="block">
-                            <span class="text-sm text-gray-600">மருத்துவர் முகவரி:</span>
-                            <textarea id="doctor-address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border" rows="2" placeholder="முகவரி">123, மருத்துவமனை சாலை, நகர்</textarea>
+                            <span class="text-sm text-gray-600">நேரம்:</span>
+                            <input id="next-appointment-time" type="time" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 p-2 border">
                         </label>
                     </div>
+                </div>
+            </div>
+            
+            <!-- Doctor/Invoice Details -->
+            <div class="p-4 border rounded-lg bg-gray-50 mb-8">
+                <h3 class="font-semibold text-lg mb-2 text-gray-700 border-b pb-1">மருத்துவர் & இன்வாய்ஸ் விவரங்கள்</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <p class="text-sm text-gray-600 self-center">இன்வாய்ஸ் எண்: <span id="invoice-id-display" class="font-mono font-bold text-blue-600">IN-XXXXX</span></p>
+                    <label class="block">
+                        <span class="text-sm text-gray-600">மருத்துவர் பெயர்:</span>
+                        <input id="doctor-name" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border" value="டாக்டர். விஸ்வா" placeholder="மருத்துவர் பெயர்" required>
+                    </label>
+                    <label class="block">
+                        <span class="text-sm text-gray-600">மருத்துவர் முகவரி:</span>
+                        <textarea id="doctor-address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border" rows="1" placeholder="முகவரி">123, மருத்துவமனை சாலை, நகர்</textarea>
+                    </label>
                 </div>
             </div>
 
@@ -127,11 +153,12 @@
                 <table id="invoice-items-table" class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-blue-50">
                         <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider no-print">விரைவுத் தேர்வு</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">விவரம்</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">அளவு</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">விலை (₹)</th>
                             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">மொத்த வரிசை தொகை (₹)</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider no-print"></th>
                         </tr>
                     </thead>
                     <tbody id="invoice-items-body" class="bg-white divide-y divide-gray-200">
@@ -210,6 +237,42 @@
             </div>
             <p id="ledger-empty-message" class="text-center text-gray-500 mt-4 hidden">இன்று வரவு பதிவுகள் எதுவும் இல்லை.</p>
         </div>
+        
+        <!-- Module 3: Settings (New Module for Editable Service Items) -->
+        <div id="settings-module" class="module hidden">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">3. அமைப்புகள்: சிகிச்சை விவரங்கள்</h2>
+            <p class="text-gray-600 mb-4">இங்குள்ள பட்டியலை நீங்கள் திருத்தலாம். இவை இன்வாய்ஸ் உருவாக்கும்போது விரைவுத் தேர்வாக (Quick Select) பயன்படுத்தப்படும். மாற்றங்கள் தானாகவே சேமிக்கப்படும்.</p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Add New Item -->
+                <div class="p-6 border rounded-lg bg-indigo-50">
+                    <h3 class="font-semibold text-xl mb-3 text-indigo-800">புதிய சேவை/பொருள் சேர்</h3>
+                    <div class="space-y-4">
+                        <label class="block">
+                            <span class="text-sm font-medium text-gray-700">சிகிச்சை விவரம் (Description):</span>
+                            <input id="new-desc" type="text" class="mt-1 block w-full p-2 border rounded-md focus:border-indigo-500" placeholder="உதாரணம்: பல் சுத்தம்">
+                        </label>
+                        <label class="block">
+                            <span class="text-sm font-medium text-gray-700">விலை (Price - ₹):</span>
+                            <input id="new-price" type="number" min="0" step="0.01" class="mt-1 block w-full p-2 border rounded-md focus:border-indigo-500" placeholder="0.00">
+                        </label>
+                        <button onclick="addNewServiceItem()" class="w-full py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition duration-300">
+                            சேவைச் சேர்
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Editable List -->
+                <div class="p-6 border rounded-lg bg-white">
+                    <h3 class="font-semibold text-xl mb-3 text-gray-800">தற்போதைய சேவைகள்</h3>
+                    <div id="service-items-list" class="space-y-3">
+                        <!-- Items dynamically loaded here -->
+                    </div>
+                    <div id="settings-message" class="mt-4 text-sm font-medium text-green-600 hidden"></div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- New: Print area div (at the end of the body, outside the main #app div) -->
@@ -222,12 +285,14 @@
         // Importing stable Firebase SDKs
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, onSnapshot, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // V: Added getDoc import
+        import { getFirestore, collection, doc, setDoc, onSnapshot, query, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global Firebase variables
         let app, db, auth;
         let userId = null;
+        let SERVICE_ITEMS_DATA = []; // Dynamic list of service items
         
         // V: USER CONFIGURATION INTEGRATED HERE for self-hosting (vrv-d4b6b)
         const firebaseConfig = {
@@ -240,9 +305,13 @@
         };
         // ^: END OF USER CONFIGURATION
 
-        // Collection paths (Private Data) - Matches the Firestore Security Rules
+        // Collection paths - Matches the Firestore Security Rules
         const getInvoiceCollectionPath = (uid) => `users/${uid}/dental_invoices`;
         const getLedgerCollectionPath = (uid) => `users/${uid}/income_ledger`;
+        
+        // Settings Document References
+        const getHospitalInfoDocRef = (uid) => doc(db, `users/${uid}/settings/hospital_info`);
+        const getServiceItemsDocRef = (uid) => doc(db, `users/${uid}/settings/service_items`);
         
         // Utility Functions
         const today = new Date();
@@ -255,7 +324,6 @@
          * @returns {string}
          */
         const formatCurrency = (amount) => {
-            // Ensure amount is treated as a number before formatting
             const num = typeof amount === 'string' ? parseFloat(amount) : amount;
             return `₹ ${num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
         };
@@ -267,158 +335,276 @@
          */
         const formatDate = (date) => {
              const options = { year: 'numeric', month: 'short', day: 'numeric' };
-             return date.toLocaleDateString('en-US', options); // Using English locale for standard format
+             return date.toLocaleDateString('en-US', options);
         };
 
-        // --- Core Application Logic ---
+        // --- Settings Management (Hospital Name/Address/Contact) ---
 
         /**
-         * Initializes Firebase and handles user authentication.
+         * Loads hospital details from Firestore if available.
          */
-        async function initializeAppAndAuth() {
+        async function loadHospitalDetails() {
+            if (!db || !userId) return;
             try {
-                // setLogLevel('debug');
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                
-                // NOTE: signInAnonymously is used to get a unique userId for private storage.
-                await signInAnonymously(auth);
+                const docRef = getHospitalInfoDocRef(userId);
+                const docSnap = await getDoc(docRef); // V: Now getDoc is imported
 
-                // Listen for authentication state changes to get the userId and proceed
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        document.getElementById('loading').classList.add('hidden');
-                        document.getElementById('app').classList.remove('hidden');
-                        
-                        // Start real-time listeners only after successful auth
-                        setupListeners();
-                        // Initialize first invoice ID
-                        setNewInvoiceId();
-                        // Ensure at least one item row exists
-                        if (document.querySelectorAll('#invoice-items-body tr').length === 0) {
-                            addItemRow();
-                        }
-                    } else {
-                        console.error("Authentication failed or user logged out.");
-                    }
-                });
-
-            } catch (error) {
-                // V: Enhanced error handling for Firebase errors
-                let errorMessage = `Firebase இணைப்பில் பிழை ஏற்பட்டது. தயவுசெய்து கன்சோலைப் பார்க்கவும். (${error.code})`;
-                
-                if (error.code === 'auth/configuration-not-found') {
-                    errorMessage = "Auth Configuration பிழை: Firebase திட்டத்தில் 'Anonymous' உள்நுழைவு முறை இயக்கப்படவில்லை. Firebase Console-ல் அதை இயக்கவும்.";
-                } else if (error.code === 'auth/admin-restricted-operation') {
-                    errorMessage = "Auth பிழை: இந்தச் செயலிக்கு 'Anonymous' உள்நுழைவு முறை மட்டுமே தேவை. Firebase Console-ல் அதை இயக்கவும்.";
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    document.getElementById('hospital-name').value = data.name || 'உங்கள் மருத்துவமனை பெயர்';
+                    document.getElementById('hospital-address').value = data.address || 'தலைமை அலுவலக முகவரி, நகர்';
+                    document.getElementById('hospital-phone').value = data.phone || '98765 43210';
+                    document.getElementById('hospital-email').value = data.email || 'info@clinic.com';
                 }
-                
-                console.error("Firebase Initialization or Auth Error:", error);
-                document.getElementById('loading').innerHTML = `<p class="text-red-500 font-bold">${errorMessage}</p>`;
+            } catch (e) {
+                console.warn("Could not load hospital details:", e);
+                // Use default values if loading fails
             }
         }
 
         /**
-         * Sets up the real-time listener for the ledger entries.
+         * Saves individual hospital details to Firestore on input blur.
+         * @param {string} field - The field being updated (name, address, phone, or email).
          */
-        function setupListeners() {
+        window.saveHospitalDetails = async function(field) {
             if (!db || !userId) return;
+            const docRef = getHospitalInfoDocRef(userId);
+            let update = {};
+            
+            switch(field) {
+                case 'name':
+                    update.name = document.getElementById('hospital-name').value.trim();
+                    break;
+                case 'address':
+                    update.address = document.getElementById('hospital-address').value.trim();
+                    break;
+                case 'phone':
+                    update.phone = document.getElementById('hospital-phone').value.trim();
+                    break;
+                case 'email':
+                    update.email = document.getElementById('hospital-email').value.trim();
+                    break;
+                default:
+                    return;
+            }
+            
+            try {
+                await setDoc(docRef, update, { merge: true });
+                // console.log(`Hospital detail '${field}' saved.`);
+            } catch (e) {
+                console.error(`Error saving hospital detail '${field}':`, e);
+            }
+        }
 
-            const ledgerRef = collection(db, getLedgerCollectionPath(userId));
-            const q = query(ledgerRef); // Query to get all ledger entries
+        // --- Service Item Management (Settings Tab) ---
+        
+        /**
+         * Saves the current SERVICE_ITEMS_DATA array back to Firestore.
+         */
+        async function saveServiceItems() {
+            if (!db || !userId) return;
+             try {
+                const docRef = getServiceItemsDocRef(userId);
+                // Save the data, ensuring it's an array
+                await setDoc(docRef, { items: SERVICE_ITEMS_DATA }); 
+                renderServiceItemsList(); // Re-render the list immediately
+                // Re-render the invoice rows to update dropdowns
+                updateInvoiceDropdowns(); 
+                return true;
+            } catch (e) {
+                console.error("Error saving service items:", e);
+                return false;
+            }
+        }
 
-            onSnapshot(q, (snapshot) => {
-                const ledgerData = [];
-                let dailyTotal = 0;
-                let monthlyTotal = 0;
-                
-                // Recalculate startOfDay and startOfMonth to be based on the local time when the listener runs
-                const now = new Date();
-                const startOfDayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-                const startOfMonthLocal = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-                
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    ledgerData.push(data);
+        /**
+         * Loads service items from Firestore or uses defaults if none exist.
+         */
+        async function loadServiceItems() {
+            if (!db || !userId) return;
+            const defaultItems = [
+                { id: crypto.randomUUID(), desc: 'பல் சுத்தம் செய்தல் (Cleaning)', price: 1500.00 },
+                { id: crypto.randomUUID(), desc: 'ரூட் கனால் சிகிச்சை (RCT)', price: 7000.00 },
+                { id: crypto.randomUUID(), desc: 'பல் எடுத்தல் (Extraction)', price: 1200.00 },
+            ];
 
-                    if (data.timestamp && data.amount !== undefined) {
-                        const entryDate = data.timestamp.toDate();
-                        const amount = parseFloat(data.amount);
+            try {
+                const docRef = getServiceItemsDocRef(userId);
+                const docSnap = await getDoc(docRef); // V: Now getDoc is imported
 
-                        // Calculate Daily Total
-                        if (entryDate >= startOfDayLocal) {
-                            dailyTotal += amount;
-                        }
-
-                        // Calculate Monthly Total
-                        if (entryDate >= startOfMonthLocal) {
-                            monthlyTotal += amount;
-                        }
-                    }
-                });
-
-                updateLedgerDisplay(ledgerData, dailyTotal, monthlyTotal);
-            }, (error) => {
-                console.error("Error listening to ledger data:", error);
-                // V: Display permission error if it occurs
-                if (error.code === 'permission-denied') {
-                     document.getElementById('ledger-empty-message').textContent = "அனுமதி இல்லை: Firebase பாதுகாப்பு விதிகளைச் சரிபார்க்கவும். தரவைப் படிக்க உங்களுக்கு அனுமதி இல்லை.";
-                     document.getElementById('ledger-empty-message').classList.remove('hidden');
+                if (docSnap.exists() && docSnap.data().items && docSnap.data().items.length > 0) {
+                    SERVICE_ITEMS_DATA = docSnap.data().items;
+                } else {
+                    SERVICE_ITEMS_DATA = defaultItems;
+                    // Note: We don't save defaults here to avoid hitting Firestore on every new anonymous user.
+                    // The items are now part of the default client state until modified/saved.
                 }
+                renderServiceItemsList();
+            } catch (e) {
+                console.warn("Could not load service items, using defaults:", e);
+                SERVICE_ITEMS_DATA = defaultItems;
+                renderServiceItemsList();
+            }
+        }
+
+        /**
+         * Renders the editable list of service items in the Settings tab.
+         */
+        function renderServiceItemsList() {
+            const listDiv = document.getElementById('service-items-list');
+            listDiv.innerHTML = '';
+
+            if (SERVICE_ITEMS_DATA.length === 0) {
+                 listDiv.innerHTML = '<p class="text-gray-500">சேவைகள் எதுவும் சேர்க்கப்படவில்லை.</p>';
+                 return;
+            }
+
+            SERVICE_ITEMS_DATA.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'flex items-center space-x-2 border-b pb-2';
+                itemDiv.innerHTML = `
+                    <input type="text" value="${item.desc}" data-id="${item.id}" data-field="desc" onblur="updateServiceItem(this)" 
+                           class="flex-1 p-1 border rounded-md text-sm focus:border-indigo-500" title="விவரம் திருத்து">
+                    <input type="number" value="${item.price.toFixed(2)}" data-id="${item.id}" data-field="price" onblur="updateServiceItem(this)" 
+                           class="w-20 p-1 border rounded-md text-sm text-right focus:border-indigo-500" title="விலை திருத்து">
+                    <button onclick="deleteServiceItem('${item.id}')" class="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100 transition duration-150">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3m-3 0h14"></path></svg>
+                    </button>
+                `;
+                listDiv.appendChild(itemDiv);
             });
         }
 
         /**
-         * Updates the UI with ledger data and report totals.
-         * @param {Array<Object>} ledgerEntries
-         * @param {number} dailyTotal
-         * @param {number} monthlyTotal
+         * Handles adding a new service item from the input fields.
          */
-        function updateLedgerDisplay(ledgerEntries, dailyTotal, monthlyTotal) {
-            document.getElementById('daily-total-display').textContent = formatCurrency(dailyTotal);
-            document.getElementById('monthly-total-display').textContent = formatCurrency(monthlyTotal);
+        window.addNewServiceItem = async function() {
+            const desc = document.getElementById('new-desc').value.trim();
+            const price = parseFloat(document.getElementById('new-price').value);
 
-            const body = document.getElementById('ledger-entries-body');
-            body.innerHTML = '';
-            
-            if (ledgerEntries.length === 0) {
-                body.innerHTML = `<tr><td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">வரவு பதிவுகள் எதுவும் இல்லை.</td></tr>`;
+            if (!desc || isNaN(price) || price < 0) {
+                showMessage("settings-message", "விவரம் மற்றும் சரியான விலையை உள்ளிடவும்.", 'text-red-600');
+                return;
+            }
+
+            const newItem = {
+                id: crypto.randomUUID(),
+                desc: desc,
+                price: price
+            };
+
+            SERVICE_ITEMS_DATA.push(newItem);
+            if (await saveServiceItems()) {
+                document.getElementById('new-desc').value = '';
+                document.getElementById('new-price').value = '';
+                showMessage("settings-message", "புதிய சேவை வெற்றிகரமாகச் சேர்க்கப்பட்டது!", 'text-green-600');
             } else {
-                // Sort by date (newest first)
-                ledgerEntries.sort((a, b) => {
-                    if (a.timestamp && b.timestamp) {
-                        return b.timestamp.toMillis() - a.timestamp.toMillis();
-                    }
-                    return 0; // Handle cases where timestamp might be missing (though unlikely with serverTimestamp)
-                });
-
-                ledgerEntries.forEach(entry => {
-                    const dateStr = entry.timestamp ? formatDate(entry.timestamp.toDate()) : 'N/A';
-                    const row = document.createElement('tr');
-                    row.className = 'hover:bg-gray-50';
-                    row.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${dateStr}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">${entry.invoiceId}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-green-700">${formatCurrency(entry.amount)}</td>
-                    `;
-                    body.appendChild(row);
-                });
+                 showMessage("settings-message", "சேர்க்க முடியவில்லை. பிழையை கன்சோலில் பார்க்கவும்.", 'text-red-600');
             }
         }
 
         /**
-         * Generates a new unique invoice ID and displays it.
+         * Handles updating an existing service item when input loses focus.
+         * @param {HTMLElement} inputElement
          */
-        function setNewInvoiceId() {
-            // Simple ID generation: IN-YYYYMMDD-UUID_prefix
-            const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-            const uuidPart = crypto.randomUUID().slice(0, 5).toUpperCase();
-            const newId = `IN-${datePart}-${uuidPart}`;
-            document.getElementById('invoice-id-display').textContent = newId;
-            return newId;
+        window.updateServiceItem = async function(inputElement) {
+            const itemId = inputElement.getAttribute('data-id');
+            const field = inputElement.getAttribute('data-field');
+            let value = inputElement.value;
+
+            const itemIndex = SERVICE_ITEMS_DATA.findIndex(item => item.id === itemId);
+
+            if (itemIndex > -1) {
+                if (field === 'price') {
+                    const parsedPrice = parseFloat(value);
+                    if (isNaN(parsedPrice) || parsedPrice < 0) {
+                        showMessage("settings-message", "விலை தவறானது. சரியான மதிப்பை உள்ளிடவும்.", 'text-red-600');
+                        // Reset input to previous valid value
+                        inputElement.value = SERVICE_ITEMS_DATA[itemIndex].price.toFixed(2);
+                        return;
+                    }
+                    SERVICE_ITEMS_DATA[itemIndex].price = parsedPrice;
+                } else {
+                    SERVICE_ITEMS_DATA[itemIndex].desc = value;
+                }
+                
+                // Save the entire array back to Firestore
+                if (await saveServiceItems()) {
+                     showMessage("settings-message", "சேவை விவரம் வெற்றிகரமாகப் புதுப்பிக்கப்பட்டது.", 'text-green-600');
+                } else {
+                     showMessage("settings-message", "புதுப்பிக்கும்போது பிழை ஏற்பட்டது.", 'text-red-600');
+                }
+            }
         }
+
+        /**
+         * Handles deleting a service item.
+         * @param {string} itemId
+         */
+        window.deleteServiceItem = async function(itemId) {
+            SERVICE_ITEMS_DATA = SERVICE_ITEMS_DATA.filter(item => item.id !== itemId);
+            if (await saveServiceItems()) {
+                showMessage("settings-message", "சேவை வெற்றிகரமாக நீக்கப்பட்டது.", 'text-green-600');
+            } else {
+                showMessage("settings-message", "நீக்கும்போது பிழை ஏற்பட்டது.", 'text-red-600');
+            }
+        }
+
+        /**
+         * Utility function to show temporary messages.
+         * @param {string} elementId
+         * @param {string} message
+         * @param {string} colorClass
+         */
+        function showMessage(elementId, message, colorClass) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.className = `mt-4 text-sm font-medium ${colorClass}`;
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 4000);
+        }
+
+        // --- Invoice Module Logic (Updated) ---
+
+        /**
+         * Updates all existing dropdowns in the invoice table with the new SERVICE_ITEMS_DATA.
+         */
+        function updateInvoiceDropdowns() {
+            const dropdowns = document.querySelectorAll('#invoice-items-body select');
+            let optionsHtml = '<option value="">-- தேர்ந்தெடு --</option>';
+            SERVICE_ITEMS_DATA.forEach(item => {
+                optionsHtml += `<option value="${item.desc}|${item.price.toFixed(2)}">${item.desc} (${formatCurrency(item.price)})</option>`;
+            });
+
+            dropdowns.forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = optionsHtml;
+                // If a value was selected, try to restore it (useful if editing an item)
+                select.value = currentValue; 
+            });
+        }
+        
+        /**
+         * Updates Description and Price inputs based on the dropdown selection.
+         * @param {HTMLElement} selectElement
+         */
+        window.updateItemDetails = function(selectElement) {
+            const row = selectElement.closest('tr');
+            const selectedValue = selectElement.value;
+            const descInput = row.querySelector('input[data-field="description"]');
+            const priceInput = row.querySelector('input[data-field="price"]');
+            
+            if (selectedValue) {
+                const [desc, price] = selectedValue.split('|');
+                descInput.value = desc;
+                priceInput.value = parseFloat(price).toFixed(2);
+            } else {
+                descInput.value = '';
+                priceInput.value = '0.00';
+            }
+            calculateTotal();
+        }
+
 
         /**
          * Adds a new item row to the invoice table.
@@ -429,7 +615,18 @@
             newRow.className = 'item-row';
             const itemId = crypto.randomUUID();
             
+            // Build the options for the dropdown using the dynamic data
+            let optionsHtml = '<option value="">-- தேர்ந்தெடு --</option>';
+            SERVICE_ITEMS_DATA.forEach(item => {
+                optionsHtml += `<option value="${item.desc}|${item.price.toFixed(2)}">${item.desc} (${formatCurrency(item.price)})</option>`;
+            });
+
             newRow.innerHTML = `
+                <td class="px-6 py-2 no-print">
+                    <select onchange="updateItemDetails(this)" class="w-full rounded-md border-gray-300 p-2 border text-sm bg-white">
+                        ${optionsHtml}
+                    </select>
+                </td>
                 <td class="px-6 py-2">
                     <input type="text" data-id="${itemId}" data-field="description" class="w-full rounded-md border-gray-300 p-2 border text-sm" placeholder="சிகிச்சை அல்லது சேவை விவரம்" required>
                 </td>
@@ -442,7 +639,7 @@
                 <td class="px-6 py-2 text-right font-medium text-gray-800">
                     <span class="row-total" data-id="${itemId}">₹ 0.00</span>
                 </td>
-                <td class="px-6 py-2">
+                <td class="px-6 py-2 no-print">
                     <button onclick="removeRow(this)" class="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100 transition duration-150" title="இந்த வரியை நீக்கு">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3m-3 0h14"></path></svg>
                     </button>
@@ -497,17 +694,15 @@
             const patientAddress = document.getElementById('patient-address').value.trim();
             const doctorName = document.getElementById('doctor-name').value.trim();
             const doctorAddress = document.getElementById('doctor-address').value.trim();
+            const nextApptDate = document.getElementById('next-appointment-date').value.trim();
+            const nextApptTime = document.getElementById('next-appointment-time').value.trim();
             
             const grandTotalText = document.getElementById('grand-total-display').textContent.replace('₹ ', '').replace(/,/g, '');
             const grandTotal = parseFloat(grandTotalText);
 
             if (showValidation && (!patientName || grandTotal <= 0)) {
                 // Using a custom message box is preferred, using console.error/message div as a non-alert placeholder.
-                const messageDiv = document.getElementById('invoice-message');
-                messageDiv.textContent = 'தயவுசெய்து நோயாளி பெயர் மற்றும் குறைந்தது ஒரு சிகிச்சையின் தொகையை உள்ளிடவும்.';
-                messageDiv.classList.remove('hidden', 'text-green-600');
-                messageDiv.classList.add('text-red-600');
-                setTimeout(() => messageDiv.classList.add('hidden'), 5000);
+                showMessage('invoice-message', 'தயவுசெய்து நோயாளி பெயர் மற்றும் குறைந்தது ஒரு சிகிச்சையின் தொகையை உள்ளிடவும்.', 'text-red-600');
                 return null;
             }
 
@@ -524,11 +719,7 @@
             });
 
             if (showValidation && items.length === 0) {
-                 const messageDiv = document.getElementById('invoice-message');
-                 messageDiv.textContent = 'தயவுசெய்து இன்வாய்ஸில் சேவைகள் அல்லது பொருட்களைச் சேர்க்கவும்.';
-                 messageDiv.classList.remove('hidden', 'text-green-600');
-                 messageDiv.classList.add('text-red-600');
-                 setTimeout(() => messageDiv.classList.add('hidden'), 5000);
+                 showMessage('invoice-message', 'தயவுசெய்து இன்வாய்ஸில் சேவைகள் அல்லது பொருட்களைச் சேர்க்கவும்.', 'text-red-600');
                  return null;
             }
             
@@ -538,6 +729,7 @@
                 patientAddress,
                 doctorName,
                 doctorAddress,
+                nextAppointment: (nextApptDate || nextApptTime) ? { date: nextApptDate, time: nextApptTime } : null,
                 items,
                 grandTotal,
                 // timestamp is added later if saving to Firestore
@@ -555,6 +747,18 @@
             
             const printableArea = document.getElementById('printable-invoice-area');
             const dateStr = formatDate(new Date());
+            const hospitalName = document.getElementById('hospital-name').value;
+            const hospitalAddress = document.getElementById('hospital-address').value.replace(/\n/g, '<br>');
+            const hospitalPhone = document.getElementById('hospital-phone').value;
+            const hospitalEmail = document.getElementById('hospital-email').value;
+
+
+            const apptDetails = invoiceData.nextAppointment && (invoiceData.nextAppointment.date || invoiceData.nextAppointment.time) ? 
+                `<div class="mt-4 p-3 border border-dashed border-yellow-500 rounded-md bg-yellow-50">
+                    <h4 class="font-semibold text-sm text-yellow-800 mb-1">அடுத்த சந்திப்பு விவரங்கள்:</h4>
+                    <p class="text-xs">தேதி: <span class="font-medium">${invoiceData.nextAppointment.date || 'N/A'}</span></p>
+                    <p class="text-xs">நேரம்: <span class="font-medium">${invoiceData.nextAppointment.time || 'N/A'}</span></p>
+                </div>` : '';
 
             // Build the printable HTML structure
             let itemsHtml = invoiceData.items.map((item, index) => `
@@ -577,19 +781,22 @@
                             <p class="text-sm text-gray-600">இன்வாய்ஸ் எண்: <span class="font-bold">${invoiceData.invoiceId}</span></p>
                         </div>
                         <div class="text-right">
-                            <h2 class="text-xl font-bold text-gray-800">${document.querySelector('h2').textContent}</h2>
-                            <p class="text-sm text-gray-500">${document.querySelector('.text-right p:nth-child(2)').textContent}</p>
-                            <p class="text-sm text-gray-500">${document.querySelector('.text-right p:nth-child(3)').textContent}</p>
+                            <h2 class="text-xl font-bold text-gray-800">${hospitalName}</h2>
+                            <p class="text-sm text-gray-500">${hospitalAddress}</p>
+                            <p class="text-sm text-gray-500">தொலைபேசி: ${hospitalPhone} | மின்னஞ்சல்: ${hospitalEmail}</p>
                             <p class="text-sm text-gray-500">மருத்துவர்: ${invoiceData.doctorName}</p>
                             <p class="text-xs text-gray-500">${invoiceData.doctorAddress}</p>
                         </div>
                     </div>
 
-                    <!-- Patient Details -->
-                    <div class="mb-8 p-3 border rounded-md bg-gray-50">
-                        <h3 class="font-semibold text-base mb-1 text-gray-700">நோயாளி விவரங்கள்:</h3>
-                        <p class="text-sm text-gray-800 font-medium">${invoiceData.patientName}</p>
-                        <p class="text-xs text-gray-600">${invoiceData.patientAddress || 'முகவரி இல்லை'}</p>
+                    <!-- Patient Details & Appointment -->
+                    <div class="grid grid-cols-2 gap-4 mb-8">
+                        <div class="p-3 border rounded-md bg-gray-50">
+                            <h3 class="font-semibold text-base mb-1 text-gray-700">நோயாளி விவரங்கள்:</h3>
+                            <p class="text-sm text-gray-800 font-medium">${invoiceData.patientName}</p>
+                            <p class="text-xs text-gray-600">${invoiceData.patientAddress || 'முகவரி இல்லை'}</p>
+                        </div>
+                        ${apptDetails}
                     </div>
 
                     <!-- Items Table -->
@@ -664,26 +871,23 @@
                 await setDoc(ledgerDocRef, ledgerEntry);
 
                 // Success message and reset
-                messageDiv.textContent = `இன்வாய்ஸ் ${finalInvoiceData.invoiceId} வெற்றிகரமாக உருவாக்கப்பட்டு, ₹ ${finalInvoiceData.grandTotal.toFixed(2)} வரவில் பதிவு செய்யப்பட்டது!`;
-                messageDiv.classList.remove('hidden', 'text-red-600');
-                messageDiv.classList.add('text-green-600');
+                showMessage('invoice-message', `இன்வாய்ஸ் ${finalInvoiceData.invoiceId} வெற்றிகரமாக உருவாக்கப்பட்டு, ₹ ${finalInvoiceData.grandTotal.toFixed(2)} வரவில் பதிவு செய்யப்பட்டது!`, 'text-green-600');
                 
                 // Reset form (minimal reset for new invoice)
                 document.getElementById('patient-name').value = '';
                 document.getElementById('patient-address').value = '';
+                document.getElementById('next-appointment-date').value = '';
+                document.getElementById('next-appointment-time').value = '';
                 document.getElementById('invoice-items-body').innerHTML = '';
                 addItemRow();
                 setNewInvoiceId();
 
             } catch (error) {
                 console.error("Error generating invoice or updating ledger:", error);
-                messageDiv.textContent = 'பதிவுசெய்யும்போது பிழை ஏற்பட்டது. கன்சோலைப் பார்க்கவும்.';
-                messageDiv.classList.remove('hidden', 'text-green-600');
-                messageDiv.classList.add('text-red-600');
+                showMessage('invoice-message', 'பதிவுசெய்யும்போது பிழை ஏற்பட்டது. கன்சோலைப் பார்க்கவும்.', 'text-red-600');
             } finally {
                 button.disabled = false;
                 button.textContent = 'இன்வாய்ஸ் உருவாக்கி வரவில் பதிவுசெய்';
-                setTimeout(() => messageDiv.classList.add('hidden'), 5000); // Hide message after 5 seconds
             }
         }
 
@@ -695,28 +899,93 @@
         window.showTab = function(tabName) {
             const invoiceModule = document.getElementById('invoice-module');
             const ledgerModule = document.getElementById('ledger-module');
+            const settingsModule = document.getElementById('settings-module');
+            
             const invoiceBtn = document.getElementById('tab-invoice-btn');
             const ledgerBtn = document.getElementById('tab-ledger-btn');
+            const settingsBtn = document.getElementById('tab-settings-btn');
 
+            // Hide all modules and remove active class from all buttons
+            [invoiceModule, ledgerModule, settingsModule].forEach(m => m.classList.add('hidden'));
+            [invoiceBtn, ledgerBtn, settingsBtn].forEach(b => {
+                b.classList.remove('tab-active');
+                b.classList.add('text-gray-500');
+            });
+
+            // Show the selected module and set the active button
+            let activeModule, activeButton;
             if (tabName === 'invoice') {
-                invoiceModule.classList.remove('hidden');
-                ledgerModule.classList.add('hidden');
-                invoiceBtn.classList.add('tab-active');
-                invoiceBtn.classList.remove('text-gray-500');
-                ledgerBtn.classList.remove('tab-active');
-                ledgerBtn.classList.add('text-gray-500');
+                activeModule = invoiceModule;
+                activeButton = invoiceBtn;
             } else if (tabName === 'ledger') {
-                ledgerModule.classList.remove('hidden');
-                invoiceModule.classList.add('hidden');
-                ledgerBtn.classList.add('tab-active');
-                ledgerBtn.classList.remove('text-gray-500');
-                invoiceBtn.classList.remove('tab-active');
-                invoiceBtn.classList.add('text-gray-500');
+                activeModule = ledgerModule;
+                activeButton = ledgerBtn;
+            } else if (tabName === 'settings') {
+                activeModule = settingsModule;
+                activeButton = settingsBtn;
+            }
+
+            if (activeModule) {
+                activeModule.classList.remove('hidden');
+                activeButton.classList.add('tab-active');
+                activeButton.classList.remove('text-gray-500');
             }
         }
+        
+        // V: Defined initializeAppAndAuth in the window scope
+        window.initializeAppAndAuth = async function() {
+            try {
+                // setLogLevel('debug');
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                // NOTE: signInAnonymously is used to get a unique userId for private storage.
+                await signInAnonymously(auth);
 
-        // Initialize the application
-        initializeAppAndAuth();
+                // Listen for authentication state changes to get the userId and proceed
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        document.getElementById('loading').classList.add('hidden');
+                        document.getElementById('app').classList.remove('hidden');
+                        
+                        // Load persistent settings (Hospital Name/Address)
+                        loadHospitalDetails(); 
+                        loadServiceItems(); // V: Load service items after auth
+                        
+                        // Start real-time listeners only after successful auth
+                        setupListeners();
+                        // Initialize first invoice ID
+                        setNewInvoiceId();
+                        // Ensure at least one item row exists
+                        if (document.querySelectorAll('#invoice-items-body tr').length === 0) {
+                            addItemRow();
+                        }
+                    } else {
+                        console.error("Authentication failed or user logged out.");
+                    }
+                });
+
+            } catch (error) {
+                // V: Enhanced error handling for Firebase errors
+                let errorMessage = `Firebase இணைப்பில் பிழை ஏற்பட்டது. தயவுசெய்து கன்சோலைப் பார்க்கவும். (${error.code})`;
+                
+                if (error.code === 'auth/configuration-not-found') {
+                    errorMessage = "Auth Configuration பிழை: Firebase திட்டத்தில் 'Anonymous' உள்நுழைவு முறை இயக்கப்படவில்லை. Firebase Console-ல் அதை இயக்கவும்.";
+                } else if (error.code === 'auth/admin-restricted-operation') {
+                    errorMessage = "Auth பிழை: இந்தச் செயலிக்கு 'Anonymous' உள்நுழைவு முறை மட்டுமே தேவை. Firebase Console-ல் அதை இயக்கவும்.";
+                }
+                
+                console.error("Firebase Initialization or Auth Error:", error);
+                document.getElementById('loading').innerHTML = `<p class="text-red-500 font-bold">${errorMessage}</p>`;
+            }
+        }
+        
+        // V: Added DOMContentLoaded listener to ensure functions are defined before call
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeAppAndAuth();
+        });
         
     </script>
 </body>
