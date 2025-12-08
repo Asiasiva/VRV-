@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ta">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dental Clinic Management</title>
-    <!-- Tailwind CSS CDN for styling -->
+    <title>Dental Clinic Invoice and Ledger Tracker</title>
+    <!-- Tailwind CSS CDN for styling and responsiveness -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Inter Font -->
     <style>
@@ -18,7 +18,7 @@
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 0 10px -5px rgba(0, 0, 0, 0.04);
         }
         .tab-active {
-            border-bottom: 33px solid #007bff; /* Custom blue for focus */
+            border-bottom: 3px solid #007bff; /* Custom blue for focus */
             color: #007bff;
         }
         /* Print Styles to hide UI elements and format the invoice for printing */
@@ -53,27 +53,59 @@
             }
             /* Hide print-specific inputs */
             .no-print { display: none !important; }
+            /* Ensure appointment details print correctly */
+            .grid-cols-2 {
+                grid-template-columns: 1fr 1fr;
+            }
         }
     </style>
 </head>
 <body class="p-4 sm:p-8">
 
     <div id="loading" class="text-center py-20 text-gray-500">
-        be patient... Server loading.
+        Connecting to Database... Please wait.
     </div>
 
-    <div id="app" class="max-w-7xl mx-auto bg-white rounded-xl invoice-card p-6 sm:p-10 hidden">
-        <h1 class="text-3xl font-bold mb-6 text-gray-800">VRV Dental Clinic</h1>
+    <!-- Login/Auth Module -->
+    <div id="auth-module" class="max-w-sm mx-auto bg-white rounded-xl invoice-card p-6 sm:p-8 hidden">
+        <h2 class="text-3xl font-bold mb-6 text-gray-800 text-center">Sign In / Sign Up</h2>
+        <p class="text-center text-red-500 mb-4" id="auth-message"></p>
+
+        <div class="space-y-4">
+            <input id="auth-email" type="email" placeholder="Email" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
+            <input id="auth-password" type="password" placeholder="Password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
+            <input id="auth-confirm-password" type="password" placeholder="Confirm Password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 hidden" required>
+            
+            <button id="login-btn" onclick="signIn()" class="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-300">Sign In</button>
+            <button id="signup-btn" onclick="signUp()" class="w-full py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-300 hidden">Sign Up</button>
+        </div>
+
+        <div class="mt-6 text-center">
+            <button onclick="toggleAuthMode()" class="text-sm text-blue-600 hover:underline" id="toggle-auth-btn">
+                Don't have an account? Click here to sign up.
+            </button>
+        </div>
+    </div>
+
+
+    <div id="app-content" class="max-w-7xl mx-auto bg-white rounded-xl invoice-card p-6 sm:p-10 hidden">
+        <div class="flex justify-between items-center mb-6 border-b pb-4">
+             <h1 class="text-3xl font-bold text-gray-800">Dental Clinic Management</h1>
+             <button onclick="signOutUser()" class="px-3 py-1 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition duration-300">
+                Logout
+             </button>
+        </div>
+       
 
         <!-- Tabs -->
-        <div class="flex border-b border-gray-200 mb-8">
-            <button id="tab-invoice-btn" onclick="showTab('invoice')" class="px-4 py-2 text-lg font-medium tab-active transition duration-300">
-                1. Invoice
+        <div class="flex border-b border-gray-200 mb-8 overflow-x-auto">
+            <button id="tab-invoice-btn" onclick="showTab('invoice')" class="px-4 py-2 text-lg font-medium tab-active transition duration-300 whitespace-nowrap">
+                1. Invoice Generation
             </button>
-            <button id="tab-ledger-btn" onclick="showTab('ledger')" class="px-4 py-2 text-lg font-medium text-gray-500 hover:text-gray-700 transition duration-300">
-                2. Ledger & Report
+            <button id="tab-ledger-btn" onclick="showTab('ledger')" class="px-4 py-2 text-lg font-medium text-gray-500 hover:text-gray-700 transition duration-300 whitespace-nowrap">
+                2. Ledger & Reports
             </button>
-            <button id="tab-settings-btn" onclick="showTab('settings')" class="px-4 py-2 text-lg font-medium text-gray-500 hover:text-gray-700 transition duration-300">
+            <button id="tab-settings-btn" onclick="showTab('settings')" class="px-4 py-2 text-lg font-medium text-gray-500 hover:text-gray-700 transition duration-300 whitespace-nowrap">
                 3. Settings
             </button>
         </div>
@@ -81,19 +113,19 @@
         <!-- Module 1: Invoice Generation -->
         <div id="invoice-module" class="module">
             <!-- Header Section -->
-            <div class="flex justify-between items-start mb-6 border-b pb-4">
-                <div class="text-left">
-                    <p class="text-4xl font-extrabold text-blue-600">Invoice</p>
+            <div class="flex flex-col sm:flex-row justify-between items-start mb-6 border-b pb-4">
+                <div class="text-left mb-4 sm:mb-0">
+                    <p class="text-3xl sm:text-4xl font-extrabold text-blue-600">Clinic Invoice</p>
                 </div>
-                <div class="text-right space-y-1">
+                <div class="text-right space-y-1 w-full sm:w-auto">
                     <!-- Editable Hospital Name -->
-                    <input id="hospital-name" type="text" class="text-2xl font-bold text-gray-800 text-right p-1 border rounded-md" value="VRV Dental Clinic" onblur="saveHospitalDetails('name')">
+                    <input id="hospital-name" type="text" class="text-xl sm:text-2xl font-bold text-gray-800 text-right p-1 border rounded-md w-full sm:w-auto" value="Your Clinic Name" onblur="saveHospitalDetails('name')">
                     <!-- Editable Address -->
-                    <textarea id="hospital-address" class="text-sm text-gray-500 text-right p-1 border rounded-md w-full" rows="1" onblur="saveHospitalDetails('address')">VRV Complex, No 2 Bypass Road</textarea>
+                    <textarea id="hospital-address" class="text-sm text-gray-500 text-right p-1 border rounded-md w-full" rows="1" onblur="saveHospitalDetails('address')">Head Office Address, City</textarea>
                     <!-- Editable Contact Info -->
                     <div class="flex flex-col items-end">
-                        <input id="hospital-phone" type="text" class="text-sm text-gray-500 text-right p-1 border rounded-md" placeholder="Contact: 98765 43210" onblur="saveHospitalDetails('phone')" value="98765 43210">
-                        <input id="hospital-email" type="email" class="text-sm text-gray-500 text-right p-1 border rounded-md mt-1" placeholder="Mail: info@clinic.com" onblur="saveHospitalDetails('email')" value="info@clinic.com">
+                        <input id="hospital-phone" type="text" class="text-sm text-gray-500 text-right p-1 border rounded-md w-full sm:w-auto" placeholder="Phone: 98765 43210" onblur="saveHospitalDetails('phone')" value="98765 43210">
+                        <input id="hospital-email" type="email" class="text-sm text-gray-500 text-right p-1 border rounded-md mt-1 w-full sm:w-auto" placeholder="Email: info@clinic.com" onblur="saveHospitalDetails('email')" value="info@clinic.com">
                     </div>
                 </div>
             </div>
@@ -106,18 +138,18 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <label class="block">
                             <span class="text-sm text-gray-600">Patient Name:</span>
-                            <input id="patient-name" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border" placeholder="பெயர்" required>
+                            <input id="patient-name" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border" placeholder="Name" required>
                         </label>
                         <label class="block">
-                            <span class="text-sm text-gray-600">Address:</span>
-                            <textarea id="patient-address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border" rows="1" placeholder="முகவரி"></textarea>
+                            <span class="text-sm text-gray-600">Patient Address:</span>
+                            <textarea id="patient-address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border" rows="1" placeholder="Address"></textarea>
                         </label>
                     </div>
                 </div>
 
                 <!-- Next Appointment Details (New Table) -->
                 <div class="p-4 border rounded-lg bg-yellow-50">
-                    <h3 class="font-semibold text-lg mb-2 text-gray-700 border-b pb-1">Next Appointment </h3>
+                    <h3 class="font-semibold text-lg mb-2 text-gray-700 border-b pb-1">Next Appointment</h3>
                     <div class="space-y-3">
                         <label class="block">
                             <span class="text-sm text-gray-600">Date:</span>
@@ -133,31 +165,31 @@
             
             <!-- Doctor/Invoice Details -->
             <div class="p-4 border rounded-lg bg-gray-50 mb-8">
-                <h3 class="font-semibold text-lg mb-2 text-gray-700 border-b pb-1">Doctor & invoice Details</h3>
+                <h3 class="font-semibold text-lg mb-2 text-gray-700 border-b pb-1">Doctor & Invoice Details</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <p class="text-sm text-gray-600 self-center">Invoice No: <span id="invoice-id-display" class="font-mono font-bold text-blue-600">IN-XXXXX</span></p>
                     <label class="block">
                         <span class="text-sm text-gray-600">Doctor Name:</span>
-                        <input id="doctor-name" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border" value="டாக்டர். விஸ்வா" placeholder="மருத்துவர் பெயர்" required>
+                        <input id="doctor-name" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border" value="Dr. Viswa" placeholder="Doctor Name" required>
                     </label>
                     <label class="block">
                         <span class="text-sm text-gray-600">Doctor Address:</span>
-                        <textarea id="doctor-address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border" rows="1" placeholder="முகவரி">123, மருத்துவமனை சாலை, நகர்</textarea>
+                        <textarea id="doctor-address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border" rows="1" placeholder="Address">123, Clinic Road, City</textarea>
                     </label>
                 </div>
             </div>
 
             <!-- Invoice Items Table -->
-            <h3 class="font-semibold text-xl mb-3 text-gray-800">Description</h3>
+            <h3 class="font-semibold text-xl mb-3 text-gray-800">Treatment/Item Details</h3>
             <div class="overflow-x-auto mb-6">
                 <table id="invoice-items-table" class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-blue-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider no-print">Quick</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider no-print">Quick Select</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">price (₹)</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Grand Total (₹)</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price (₹)</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Line Total (₹)</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider no-print"></th>
                         </tr>
                     </thead>
@@ -168,7 +200,7 @@
             </div>
             <button onclick="addItemRow()" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-300 mb-6 flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                New line add
+                Add New Item
             </button>
 
             <!-- Totals and Action -->
@@ -176,7 +208,7 @@
                 <div class="w-full md:w-1/3">
                     <div class="border-t border-gray-300 pt-4 space-y-2">
                         <div class="flex justify-between font-medium text-gray-700">
-                            <span>(Subtotal):</span>
+                            <span>Subtotal:</span>
                             <span id="subtotal-display">₹ 0.00</span>
                         </div>
                         <div class="flex justify-between font-bold text-xl text-blue-600 border-t pt-2">
@@ -188,10 +220,10 @@
                     <!-- Updated Buttons with Print -->
                     <div class="flex space-x-4 mt-6">
                         <button id="print-invoice-btn" onclick="printCurrentInvoice()" class="flex-1 py-3 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-600 transition duration-300">
-                            Print
+                            Print Invoice
                         </button>
                         <button id="generate-invoice-btn" onclick="generateInvoice()" class="flex-1 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
-                            இன்வாய்ஸ் உருவாக்கி வரவில் பதிவுசெய்
+                            Generate & Save Invoice
                         </button>
                     </div>
 
@@ -202,70 +234,70 @@
 
         <!-- Module 2: Ledger Tracker and Reports -->
         <div id="ledger-module" class="module hidden">
-            <h2 class="text-2xl font-bold mb-6 text-gray-800">வரவு கண்காணிப்பான் & அறிக்கைகள்</h2>
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">2. Ledger Tracker & Reports</h2>
 
             <!-- Reports Summary -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
                 <div class="p-6 bg-green-50 rounded-lg border-l-4 border-green-600">
-                    <p class="text-sm font-medium text-green-600">தினசரி மொத்த வரவு (Today's Income)</p>
+                    <p class="text-sm font-medium text-green-600">Today's Income</p>
                     <p id="daily-total-display" class="text-3xl font-extrabold text-gray-800 mt-1">₹ 0.00</p>
                 </div>
                 <div class="p-6 bg-yellow-50 rounded-lg border-l-4 border-yellow-600">
-                    <p class="text-sm font-medium text-yellow-600">மாதாந்திர மொத்த வரவு (Monthly Income)</p>
+                    <p class="text-sm font-medium text-yellow-600">Monthly Income</p>
                     <p id="monthly-total-display" class="text-3xl font-extrabold text-gray-800 mt-1">₹ 0.00</p>
                 </div>
             </div>
 
             <!-- Ledger List -->
-            <h3 class="font-semibold text-xl mb-3 text-gray-800">பதிவு செய்யப்பட்ட வரவு விவரங்கள்</h3>
+            <h3 class="font-semibold text-xl mb-3 text-gray-800">Recorded Transactions</h3>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">தேதி</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">இன்வாய்ஸ் எண்</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">தொகை (₹)</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">நீக்கு</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice No</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount (₹)</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Delete</th>
                         </tr>
                     </thead>
                     <tbody id="ledger-entries-body" class="bg-white divide-y divide-gray-200">
                         <!-- Ledger entries will be loaded here -->
                         <tr>
-                            <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">வரவு பதிவுகள் எதுவும் இல்லை.</td>
+                            <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">No transactions recorded.</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <p id="ledger-empty-message" class="text-center text-gray-500 mt-4 hidden">இன்று வரவு பதிவுகள் எதுவும் இல்லை.</p>
+            <p id="ledger-empty-message" class="text-center text-gray-500 mt-4 hidden">No transactions recorded today.</p>
         </div>
         
         <!-- Module 3: Settings (New Module for Editable Service Items) -->
         <div id="settings-module" class="module hidden">
-            <h2 class="text-2xl font-bold mb-6 text-gray-800">3. அமைப்புகள்: சிகிச்சை விவரங்கள்</h2>
-            <p class="text-gray-600 mb-4">இங்குள்ள பட்டியலை நீங்கள் திருத்தலாம். இவை இன்வாய்ஸ் உருவாக்கும்போது விரைவுத் தேர்வாக (Quick Select) பயன்படுத்தப்படும். மாற்றங்கள் தானாகவே சேமிக்கப்படும்.</p>
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">3. Settings: Service & Price List</h2>
+            <p class="text-gray-600 mb-4">Edit this list of services and prices. These will be used for Quick Select in the Invoice module. Changes are saved automatically.</p>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Add New Item -->
                 <div class="p-6 border rounded-lg bg-indigo-50">
-                    <h3 class="font-semibold text-xl mb-3 text-indigo-800">புதிய சேவை/பொருள் சேர்</h3>
+                    <h3 class="font-semibold text-xl mb-3 text-indigo-800">Add New Service/Item</h3>
                     <div class="space-y-4">
                         <label class="block">
-                            <span class="text-sm font-medium text-gray-700">சிகிச்சை விவரம் (Description):</span>
-                            <input id="new-desc" type="text" class="mt-1 block w-full p-2 border rounded-md focus:border-indigo-500" placeholder="உதாரணம்: பல் சுத்தம்">
+                            <span class="text-sm font-medium text-gray-700">Description:</span>
+                            <input id="new-desc" type="text" class="mt-1 block w-full p-2 border rounded-md focus:border-indigo-500" placeholder="e.g., Dental Cleaning">
                         </label>
                         <label class="block">
-                            <span class="text-sm font-medium text-gray-700">விலை (Price - ₹):</span>
+                            <span class="text-sm font-medium text-gray-700">Price (₹):</span>
                             <input id="new-price" type="number" min="0" step="0.01" class="mt-1 block w-full p-2 border rounded-md focus:border-indigo-500" placeholder="0.00">
                         </label>
                         <button onclick="addNewServiceItem()" class="w-full py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition duration-300">
-                            சேவைச் சேர்
+                            Add Service
                         </button>
                     </div>
                 </div>
 
                 <!-- Editable List -->
                 <div class="p-6 border rounded-lg bg-white">
-                    <h3 class="font-semibold text-xl mb-3 text-gray-800">தற்போதைய சேவைகள்</h3>
+                    <h3 class="font-semibold text-xl mb-3 text-gray-800">Current Services</h3>
                     <div id="service-items-list" class="space-y-3">
                         <!-- Items dynamically loaded here -->
                     </div>
@@ -283,12 +315,11 @@
 
     <!-- Firebase SDKs -->
     <script type="module">
-        // Importing stable Firebase SDKs
+        // Importing stable Firebase SDKs and updated auth functions
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        // V: Added deleteDoc import
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, onSnapshot, query, serverTimestamp, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // setLogLevel is not needed for final deployment
 
         // Global Firebase variables
         let app, db, auth;
@@ -363,6 +394,107 @@
             return newId;
         }
 
+        // --- Authentication/Routing Logic (NEW) ---
+
+        /**
+         * Toggles between Login and Signup modes.
+         */
+        window.toggleAuthMode = function() {
+            const isLogin = document.getElementById('login-btn').classList.contains('hidden');
+            const toggleBtn = document.getElementById('toggle-auth-btn');
+            const confirmPass = document.getElementById('auth-confirm-password');
+            const loginBtn = document.getElementById('login-btn');
+            const signupBtn = document.getElementById('signup-btn');
+            document.getElementById('auth-message').textContent = '';
+
+            if (isLogin) { // Switch to Login
+                confirmPass.classList.add('hidden');
+                loginBtn.classList.remove('hidden');
+                signupBtn.classList.add('hidden');
+                toggleBtn.textContent = "Don't have an account? Click here to sign up.";
+            } else { // Switch to Signup
+                confirmPass.classList.remove('hidden');
+                loginBtn.classList.add('hidden');
+                signupBtn.classList.remove('hidden');
+                toggleBtn.textContent = 'Already have an account? Click here to sign in.';
+            }
+        }
+
+        /**
+         * Handles user sign in with email and password.
+         */
+        window.signIn = async function() {
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const msgEl = document.getElementById('auth-message');
+
+            if (!email || !password) {
+                msgEl.textContent = 'Please enter email and password.';
+                return;
+            }
+
+            try {
+                msgEl.textContent = 'Signing in...';
+                await signInWithEmailAndPassword(auth, email, password);
+                // Auth state change listener handles the rest
+            } catch (error) {
+                console.error("Sign In Error:", error);
+                let message = 'Sign in failed.';
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    message = 'Invalid email or password.';
+                } else if (error.code === 'auth/invalid-email') {
+                    message = 'Invalid email format.';
+                }
+                msgEl.textContent = message;
+            }
+        }
+
+        /**
+         * Handles user sign up with email and password.
+         */
+        window.signUp = async function() {
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const confirmPass = document.getElementById('auth-confirm-password').value;
+            const msgEl = document.getElementById('auth-message');
+
+            if (password !== confirmPass) {
+                msgEl.textContent = 'Passwords do not match.';
+                return;
+            }
+            if (password.length < 6) {
+                msgEl.textContent = 'Password must be at least 6 characters long.';
+                return;
+            }
+
+            try {
+                msgEl.textContent = 'Signing up...';
+                await createUserWithEmailAndPassword(auth, email, password);
+                // Auth state change listener handles the rest
+            } catch (error) {
+                console.error("Sign Up Error:", error);
+                let message = 'Sign up failed.';
+                if (error.code === 'auth/email-already-in-use') {
+                    message = 'This email is already in use.';
+                } else if (error.code === 'auth/invalid-email') {
+                    message = 'Invalid email format.';
+                }
+                msgEl.textContent = message;
+            }
+        }
+
+        /**
+         * Handles user sign out.
+         */
+        window.signOutUser = async function() {
+            try {
+                await signOut(auth);
+                // Auth state change listener handles the rest
+            } catch (error) {
+                console.error("Sign Out Error:", error);
+            }
+        }
+
         // --- Core Application Logic: Setup Listeners ---
         
         /**
@@ -411,7 +543,7 @@
                 console.error("Error listening to ledger data:", error);
                 // V: Display permission error if it occurs
                 if (error.code === 'permission-denied') {
-                     document.getElementById('ledger-empty-message').textContent = "அனுமதி இல்லை: Firebase பாதுகாப்பு விதிகளைச் சரிபார்க்கவும். தரவைப் படிக்க உங்களுக்கு அனுமதி இல்லை.";
+                     document.getElementById('ledger-empty-message').textContent = "Permission Denied: Check Firebase Security Rules. You do not have read access.";
                      document.getElementById('ledger-empty-message').classList.remove('hidden');
                 }
             });
@@ -431,7 +563,7 @@
             body.innerHTML = '';
             
             if (ledgerEntries.length === 0) {
-                body.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">வரவு பதிவுகள் எதுவும் இல்லை.</td></tr>`;
+                body.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">No transactions recorded.</td></tr>`;
             } else {
                 // Sort by date (newest first)
                 ledgerEntries.sort((a, b) => {
@@ -450,7 +582,7 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">${entry.invoiceId}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-green-700">${formatCurrency(entry.amount)}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-center">
-                            <button onclick="window.deleteLedgerEntry('${entry.docId}')" class="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100 transition duration-150" title="இந்த பதிவை நீக்கு">
+                            <button onclick="window.deleteLedgerEntry('${entry.docId}')" class="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100 transition duration-150" title="Delete this entry">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3m-3 0h14"></path></svg>
                             </button>
                         </td>
@@ -467,8 +599,7 @@
         window.deleteLedgerEntry = async function(invoiceId) {
             if (!db || !userId) return;
 
-            // V: Using a custom modal message approach instead of alert()/confirm()
-            const confirmDelete = window.confirm(`உறுதியாக இன்வாய்ஸ் எண்ணை ${invoiceId} நீக்க வேண்டுமா? இந்தச் செயல்பாடு முழு இன்வாய்ஸ் மற்றும் வரவுப் பதிவை நிரந்தரமாக நீக்கும்.`);
+            const confirmDelete = window.confirm(`Are you sure you want to delete Invoice ${invoiceId}? This action will permanently delete both the invoice and ledger entry.`);
             
             if (confirmDelete) {
                 try {
@@ -482,11 +613,11 @@
 
                     // Deletion success message (will be automatically updated by onSnapshot listener)
                     console.log(`Invoice ${invoiceId} and Ledger entry deleted successfully.`);
-                    showMessage('invoice-message', `இன்வாய்ஸ் ${invoiceId} வெற்றிகரமாக நீக்கப்பட்டது.`, 'text-green-600');
+                    showMessage('invoice-message', `Invoice ${invoiceId} deleted successfully.`, 'text-green-600');
 
                 } catch (error) {
                     console.error("Error deleting document:", error);
-                    showMessage('invoice-message', `நீக்கும்போது பிழை ஏற்பட்டது: ${error.code}.`, 'text-red-600');
+                    showMessage('invoice-message', `Deletion failed: ${error.code}. Check permissions.`, 'text-red-600');
                 }
             }
         }
@@ -504,8 +635,8 @@
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    document.getElementById('hospital-name').value = data.name || 'உங்கள் மருத்துவமனை பெயர்';
-                    document.getElementById('hospital-address').value = data.address || 'தலைமை அலுவலக முகவரி, நகர்';
+                    document.getElementById('hospital-name').value = data.name || 'Your Clinic Name';
+                    document.getElementById('hospital-address').value = data.address || 'Head Office Address, City';
                     document.getElementById('hospital-phone').value = data.phone || '98765 43210';
                     document.getElementById('hospital-email').value = data.email || 'info@clinic.com';
                 }
@@ -576,9 +707,9 @@
         window.loadServiceItems = async function() { // V: Defined on window scope
             if (!db || !userId) return;
             const defaultItems = [
-                { id: crypto.randomUUID(), desc: 'பல் சுத்தம் செய்தல் (Cleaning)', price: 1500.00 },
-                { id: crypto.randomUUID(), desc: 'ரூட் கனால் சிகிச்சை (RCT)', price: 7000.00 },
-                { id: crypto.randomUUID(), desc: 'பல் எடுத்தல் (Extraction)', price: 1200.00 },
+                { id: crypto.randomUUID(), desc: 'Dental Cleaning', price: 1500.00 },
+                { id: crypto.randomUUID(), desc: 'Root Canal Treatment (RCT)', price: 7000.00 },
+                { id: crypto.randomUUID(), desc: 'Tooth Extraction', price: 1200.00 },
             ];
 
             try {
@@ -608,7 +739,7 @@
             listDiv.innerHTML = '';
 
             if (SERVICE_ITEMS_DATA.length === 0) {
-                 listDiv.innerHTML = '<p class="text-gray-500">சேவைகள் எதுவும் சேர்க்கப்படவில்லை.</p>';
+                 listDiv.innerHTML = '<p class="text-gray-500">No services added.</p>';
                  return;
             }
 
@@ -617,9 +748,9 @@
                 itemDiv.className = 'flex items-center space-x-2 border-b pb-2';
                 itemDiv.innerHTML = `
                     <input type="text" value="${item.desc}" data-id="${item.id}" data-field="desc" onblur="updateServiceItem(this)" 
-                           class="flex-1 p-1 border rounded-md text-sm focus:border-indigo-500" title="விவரம் திருத்து">
+                           class="flex-1 p-1 border rounded-md text-sm focus:border-indigo-500" title="Edit Description">
                     <input type="number" value="${item.price.toFixed(2)}" data-id="${item.id}" data-field="price" onblur="updateServiceItem(this)" 
-                           class="w-20 p-1 border rounded-md text-sm text-right focus:border-indigo-500" title="விலை திருத்து">
+                           class="w-20 p-1 border rounded-md text-sm text-right focus:border-indigo-500" title="Edit Price">
                     <button onclick="deleteServiceItem('${item.id}')" class="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100 transition duration-150">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3m-3 0h14"></path></svg>
                     </button>
@@ -636,7 +767,7 @@
             const price = parseFloat(document.getElementById('new-price').value);
 
             if (!desc || isNaN(price) || price < 0) {
-                showMessage("settings-message", "விவரம் மற்றும் சரியான விலையை உள்ளிடவும்.", 'text-red-600');
+                showMessage("settings-message", "Please enter a description and a valid price.", 'text-red-600');
                 return;
             }
 
@@ -650,9 +781,9 @@
             if (await saveServiceItems()) {
                 document.getElementById('new-desc').value = '';
                 document.getElementById('new-price').value = '';
-                showMessage("settings-message", "புதிய சேவை வெற்றிகரமாகச் சேர்க்கப்பட்டது!", 'text-green-600');
+                showMessage("settings-message", "New service added successfully!", 'text-green-600');
             } else {
-                 showMessage("settings-message", "சேர்க்க முடியவில்லை. பிழையை கன்சோலில் பார்க்கவும்.", 'text-red-600');
+                 showMessage("settings-message", "Failed to add service. Check console.", 'text-red-600');
             }
         }
 
@@ -671,7 +802,7 @@
                 if (field === 'price') {
                     const parsedPrice = parseFloat(value);
                     if (isNaN(parsedPrice) || parsedPrice < 0) {
-                        showMessage("settings-message", "விலை தவறானது. சரியான மதிப்பை உள்ளிடவும்.", 'text-red-600');
+                        showMessage("settings-message", "Invalid price. Enter a valid value.", 'text-red-600');
                         // Reset input to previous valid value
                         inputElement.value = SERVICE_ITEMS_DATA[itemIndex].price.toFixed(2);
                         return;
@@ -683,9 +814,9 @@
                 
                 // Save the entire array back to Firestore
                 if (await saveServiceItems()) {
-                     showMessage("settings-message", "சேவை விவரம் வெற்றிகரமாகப் புதுப்பிக்கப்பட்டது.", 'text-green-600');
+                     showMessage("settings-message", "Service details updated successfully.", 'text-green-600');
                 } else {
-                     showMessage("settings-message", "புதுப்பிக்கும்போது பிழை ஏற்பட்டது.", 'text-red-600');
+                     showMessage("settings-message", "Failed to update. Check console.", 'text-red-600');
                 }
             }
         }
@@ -697,9 +828,9 @@
         window.deleteServiceItem = async function(itemId) {
             SERVICE_ITEMS_DATA = SERVICE_ITEMS_DATA.filter(item => item.id !== itemId);
             if (await saveServiceItems()) {
-                showMessage("settings-message", "சேவை வெற்றிகரமாக நீக்கப்பட்டது.", 'text-green-600');
+                showMessage("settings-message", "Service deleted successfully.", 'text-green-600');
             } else {
-                showMessage("settings-message", "நீக்கும்போது பிழை ஏற்பட்டது.", 'text-red-600');
+                showMessage("settings-message", "Failed to delete service. Check console.", 'text-red-600');
             }
         }
 
@@ -708,7 +839,7 @@
          */
         function updateInvoiceDropdowns() {
             const dropdowns = document.querySelectorAll('#invoice-items-body select');
-            let optionsHtml = '<option value="">-- தேர்ந்தெடு --</option>';
+            let optionsHtml = '<option value="">-- Select --</option>';
             SERVICE_ITEMS_DATA.forEach(item => {
                 optionsHtml += `<option value="${item.desc}|${item.price.toFixed(2)}">${item.desc} (${formatCurrency(item.price)})</option>`;
             });
@@ -753,7 +884,7 @@
             const itemId = crypto.randomUUID();
             
             // Build the options for the dropdown using the dynamic data
-            let optionsHtml = '<option value="">-- தேர்ந்தெடு --</option>';
+            let optionsHtml = '<option value="">-- Select --</option>';
             SERVICE_ITEMS_DATA.forEach(item => {
                 optionsHtml += `<option value="${item.desc}|${item.price.toFixed(2)}">${item.desc} (${formatCurrency(item.price)})</option>`;
             });
@@ -765,7 +896,7 @@
                     </select>
                 </td>
                 <td class="px-6 py-2">
-                    <input type="text" data-id="${itemId}" data-field="description" class="w-full rounded-md border-gray-300 p-2 border text-sm" placeholder="சிகிச்சை அல்லது சேவை விவரம்" required>
+                    <input type="text" data-id="${itemId}" data-field="description" class="w-full rounded-md border-gray-300 p-2 border text-sm" placeholder="Treatment or service detail" required>
                 </td>
                 <td class="px-6 py-2">
                     <input type="number" data-id="${itemId}" data-field="quantity" value="1" min="1" oninput="calculateTotal()" class="w-20 rounded-md border-gray-300 p-2 border text-sm text-center" required>
@@ -777,7 +908,7 @@
                     <span class="row-total" data-id="${itemId}">₹ 0.00</span>
                 </td>
                 <td class="px-6 py-2 no-print">
-                    <button onclick="removeRow(this)" class="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100 transition duration-150" title="இந்த வரியை நீக்கு">
+                    <button onclick="removeRow(this)" class="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100 transition duration-150" title="Delete row">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3m-3 0h14"></path></svg>
                     </button>
                 </td>
@@ -839,7 +970,7 @@
 
             if (showValidation && (!patientName || grandTotal <= 0)) {
                 // Using a custom message box is preferred, using console.error/message div as a non-alert placeholder.
-                showMessage('invoice-message', 'தயவுசெய்து நோயாளி பெயர் மற்றும் குறைந்தது ஒரு சிகிச்சையின் தொகையை உள்ளிடவும்.', 'text-red-600');
+                showMessage('invoice-message', 'Please enter the patient name and at least one treatment amount.', 'text-red-600');
                 return null;
             }
 
@@ -856,7 +987,7 @@
             });
 
             if (showValidation && items.length === 0) {
-                 showMessage('invoice-message', 'தயவுசெய்து இன்வாய்ஸில் சேவைகள் அல்லது பொருட்களைச் சேர்க்கவும்.', 'text-red-600');
+                 showMessage('invoice-message', 'Please add services or items to the invoice.', 'text-red-600');
                  return null;
             }
             
@@ -892,9 +1023,9 @@
 
             const apptDetails = invoiceData.nextAppointment && (invoiceData.nextAppointment.date || invoiceData.nextAppointment.time) ? 
                 `<div class="mt-4 p-3 border border-dashed border-yellow-500 rounded-md bg-yellow-50">
-                    <h4 class="font-semibold text-sm text-yellow-800 mb-1">அடுத்த சந்திப்பு விவரங்கள்:</h4>
-                    <p class="text-xs">தேதி: <span class="font-medium">${invoiceData.nextAppointment.date || 'N/A'}</span></p>
-                    <p class="text-xs">நேரம்: <span class="font-medium">${invoiceData.nextAppointment.time || 'N/A'}</span></p>
+                    <h4 class="font-semibold text-sm text-yellow-800 mb-1">Next Appointment Details:</h4>
+                    <p class="text-xs">Date: <span class="font-medium">${invoiceData.nextAppointment.date || 'N/A'}</span></p>
+                    <p class="text-xs">Time: <span class="font-medium">${invoiceData.nextAppointment.time || 'N/A'}</span></p>
                 </div>` : '';
 
             // Build the printable HTML structure
@@ -913,15 +1044,15 @@
                     <!-- Header -->
                     <div class="flex justify-between items-start mb-8 border-b pb-4 border-gray-800">
                         <div>
-                            <p class="text-3xl font-extrabold text-blue-700">கிளினிக் இன்வாய்ஸ்</p>
-                            <p class="text-sm text-gray-600 mt-2">தேதி: ${dateStr}</p>
-                            <p class="text-sm text-gray-600">இன்வாய்ஸ் எண்: <span class="font-bold">${invoiceData.invoiceId}</span></p>
+                            <p class="text-3xl font-extrabold text-blue-700">Clinic Invoice</p>
+                            <p class="text-sm text-gray-600 mt-2">Date: ${dateStr}</p>
+                            <p class="text-sm text-gray-600">Invoice No: <span class="font-bold">${invoiceData.invoiceId}</span></p>
                         </div>
                         <div class="text-right">
                             <h2 class="text-xl font-bold text-gray-800">${hospitalName}</h2>
                             <p class="text-sm text-gray-500">${hospitalAddress}</p>
-                            <p class="text-sm text-gray-500">தொலைபேசி: ${hospitalPhone} | மின்னஞ்சல்: ${hospitalEmail}</p>
-                            <p class="text-sm text-gray-500">மருத்துவர்: ${invoiceData.doctorName}</p>
+                            <p class="text-sm text-gray-500">Phone: ${hospitalPhone} | Email: ${hospitalEmail}</p>
+                            <p class="text-sm text-gray-500">Doctor: ${invoiceData.doctorName}</p>
                             <p class="text-xs text-gray-500">${invoiceData.doctorAddress}</p>
                         </div>
                     </div>
@@ -929,10 +1060,11 @@
                     <!-- Patient Details & Appointment -->
                     <div class="grid grid-cols-2 gap-4 mb-8">
                         <div class="p-3 border rounded-md bg-gray-50">
-                            <h3 class="font-semibold text-base mb-1 text-gray-700">நோயாளி விவரங்கள்:</h3>
+                            <h3 class="font-semibold text-base mb-1 text-gray-700">Patient Details:</h3>
                             <p class="text-sm text-gray-800 font-medium">${invoiceData.patientName}</p>
-                            <p class="text-xs text-gray-600">${invoiceData.patientAddress || 'முகவரி இல்லை'}</p>
+                            <p class="text-xs text-gray-600">${invoiceData.patientAddress || 'No Address Provided'}</p>
                         </div>
+                        <!-- Appointment Details on Print -->
                         ${apptDetails}
                     </div>
 
@@ -941,10 +1073,10 @@
                         <thead class="bg-blue-100">
                             <tr>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-800 uppercase w-10 border border-gray-300">#</th>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-800 uppercase border border-gray-300">விவரம்</th>
-                                <th class="px-4 py-2 text-center text-xs font-medium text-gray-800 uppercase w-16 border border-gray-300">அளவு</th>
-                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-800 uppercase w-24 border border-gray-300">விலை (₹)</th>
-                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-800 uppercase w-32 border border-gray-300">மொத்த வரிசை தொகை (₹)</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-800 uppercase border border-gray-300">Description</th>
+                                <th class="px-4 py-2 text-center text-xs font-medium text-gray-800 uppercase w-16 border border-gray-300">Qty</th>
+                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-800 uppercase w-24 border border-gray-300">Price (₹)</th>
+                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-800 uppercase w-32 border border-gray-300">Line Total (₹)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -952,11 +1084,11 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="4" class="px-4 py-2 text-right text-base font-medium text-gray-700 border border-gray-300">மொத்த உப தொகை:</td>
+                                <td colspan="4" class="px-4 py-2 text-right text-base font-medium text-gray-700 border border-gray-300">Subtotal:</td>
                                 <td class="px-4 py-2 text-right text-base font-medium text-gray-700 border border-gray-300">${formatCurrency(invoiceData.grandTotal)}</td>
                             </tr>
                             <tr class="bg-blue-50">
-                                <td colspan="4" class="px-4 py-3 text-right text-xl font-bold text-blue-700 border border-gray-300">மொத்த செலுத்த வேண்டிய தொகை:</td>
+                                <td colspan="4" class="px-4 py-3 text-right text-xl font-bold text-blue-700 border border-gray-300">Amount Due:</td>
                                 <td class="px-4 py-3 text-right text-xl font-bold text-blue-700 border border-gray-300">${formatCurrency(invoiceData.grandTotal)}</td>
                             </tr>
                         </tfoot>
@@ -964,9 +1096,9 @@
 
                     <!-- Footer -->
                     <div class="text-right mt-10 pt-5 border-t border-dashed border-gray-400">
-                        <p class="text-sm text-gray-800 font-medium">அங்கீகரிக்கப்பட்ட கையெழுத்து</p>
+                        <p class="text-sm text-gray-800 font-medium">Authorized Signature</p>
                         <div class="mt-8">..................................</div>
-                        <p class="text-xs text-gray-500 mt-2">இது கணினி மூலம் உருவாக்கப்பட்ட இன்வாய்ஸ்.</p>
+                        <p class="text-xs text-gray-500 mt-2">This is a computer-generated invoice.</p>
                     </div>
                 </div>
             `;
@@ -986,7 +1118,7 @@
             const messageDiv = document.getElementById('invoice-message');
 
             button.disabled = true;
-            button.textContent = 'பதிவுசெய்கிறது...';
+            button.textContent = 'Recording...';
             messageDiv.classList.add('hidden');
 
             try {
@@ -1008,7 +1140,7 @@
                 await setDoc(ledgerDocRef, ledgerEntry);
 
                 // Success message and reset
-                showMessage('invoice-message', `இன்வாய்ஸ் ${finalInvoiceData.invoiceId} வெற்றிகரமாக உருவாக்கப்பட்டு, ₹ ${finalInvoiceData.grandTotal.toFixed(2)} வரவில் பதிவு செய்யப்பட்டது!`, 'text-green-600');
+                showMessage('invoice-message', `Invoice ${finalInvoiceData.invoiceId} generated and recorded successfully! (₹ ${finalInvoiceData.grandTotal.toFixed(2)})`, 'text-green-600');
                 
                 // Reset form (minimal reset for new invoice)
                 document.getElementById('patient-name').value = '';
@@ -1017,14 +1149,14 @@
                 document.getElementById('next-appointment-time').value = '';
                 document.getElementById('invoice-items-body').innerHTML = '';
                 addItemRow();
-                window.setNewInvoiceId(); // V: Called via window scope
+                window.setNewInvoiceId(); 
 
             } catch (error) {
                 console.error("Error generating invoice or updating ledger:", error);
-                showMessage('invoice-message', 'பதிவுசெய்யும்போது பிழை ஏற்பட்டது. கன்சோலைப் பார்க்கவும்.', 'text-red-600');
+                showMessage('invoice-message', 'Failed to record invoice. Check console for details.', 'text-red-600');
             } finally {
                 button.disabled = false;
-                button.textContent = 'இன்வாய்ஸ் உருவாக்கி வரவில் பதிவுசெய்';
+                button.textContent = 'Generate & Save Invoice';
             }
         }
 
@@ -1072,46 +1204,45 @@
         // V: Defined initializeAppAndAuth in the window scope
         window.initializeAppAndAuth = async function() {
             try {
-                // setLogLevel('debug');
                 app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
                 auth = getAuth(app);
+                db = getFirestore(app); // Ensure db is defined globally
                 
-                // NOTE: signInAnonymously is used to get a unique userId for private storage.
-                await signInAnonymously(auth);
-
-                // Listen for authentication state changes to get the userId and proceed
+                // Monitor authentication state
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         userId = user.uid;
-                        document.getElementById('loading').classList.add('hidden');
-                        document.getElementById('app').classList.remove('hidden');
                         
-                        // V: Functions now called via window scope
+                        // Hide Auth screen, show App content
+                        document.getElementById('auth-module').classList.add('hidden');
+                        document.getElementById('loading').classList.add('hidden');
+                        document.getElementById('app-content').classList.remove('hidden');
+                        
+                        // Load user-specific data
                         window.loadHospitalDetails(); 
                         window.loadServiceItems();
-                        
-                        // V: Function now called via window scope
                         window.setupListeners();
-                        // V: Function now called via window scope
+                        
+                        // Initialize UI elements
                         window.setNewInvoiceId();
-                        // Ensure at least one item row exists
                         if (document.querySelectorAll('#invoice-items-body tr').length === 0) {
                             addItemRow();
                         }
                     } else {
-                        console.error("Authentication failed or user logged out.");
+                        userId = null;
+                        document.getElementById('loading').classList.add('hidden');
+                        document.getElementById('app-content').classList.add('hidden');
+                        document.getElementById('auth-module').classList.remove('hidden');
                     }
                 });
 
             } catch (error) {
-                // V: Enhanced error handling for Firebase errors
-                let errorMessage = `Firebase இணைப்பில் பிழை ஏற்பட்டது. தயவுசெய்து கன்சோலைப் பார்க்கவும். (${error.code})`;
+                let errorMessage = `Firebase Initialization or Auth Error. Check console for details. (${error.code})`;
                 
                 if (error.code === 'auth/configuration-not-found') {
-                    errorMessage = "Auth Configuration பிழை: Firebase திட்டத்தில் 'Anonymous' உள்நுழைவு முறை இயக்கப்படவில்லை. Firebase Console-ல் அதை இயக்கவும்.";
+                    errorMessage = "Auth Config Error: Firebase 'Email/Password' sign-in method might be disabled in the Firebase Console.";
                 } else if (error.code === 'auth/admin-restricted-operation') {
-                    errorMessage = "Auth பிழை: இந்தச் செயலிக்கு 'Anonymous' உள்நுழைவு முறை மட்டுமே தேவை. Firebase Console-ல் அதை இயக்கவும்.";
+                    errorMessage = "Auth Error: This app requires 'Email/Password' method. Ensure it's enabled in the Firebase Console.";
                 }
                 
                 console.error("Firebase Initialization or Auth Error:", error);
