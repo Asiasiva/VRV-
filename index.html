@@ -90,7 +90,7 @@
 
     <div id="app-content" class="max-w-7xl mx-auto bg-white rounded-xl invoice-card p-6 sm:p-10 hidden">
         <div class="flex justify-between items-center mb-6 border-b pb-4">
-             <h1 class="text-3xl font-bold text-gray-800">Dental Clinic Management</h1>
+             <h1 class="text-3xl font-bold text-gray-800">VRV Dental Clinic </h1>
              <button onclick="signOutUser()" class="px-3 py-1 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition duration-300">
                 Logout
              </button>
@@ -103,7 +103,7 @@
                 1. Invoice Generation
             </button>
             <button id="tab-ledger-btn" onclick="showTab('ledger')" class="px-4 py-2 text-lg font-medium text-gray-500 hover:text-gray-700 transition duration-300 whitespace-nowrap">
-                2. Ledger & Reports
+                2. Reports
             </button>
             <button id="tab-settings-btn" onclick="showTab('settings')" class="px-4 py-2 text-lg font-medium text-gray-500 hover:text-gray-700 transition duration-300 whitespace-nowrap">
                 3. Settings
@@ -170,17 +170,17 @@
                     <p class="text-sm text-gray-600 self-center">Invoice No: <span id="invoice-id-display" class="font-mono font-bold text-blue-600">IN-XXXXX</span></p>
                     <label class="block">
                         <span class="text-sm text-gray-600">Doctor Name:</span>
-                        <input id="doctor-name" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border" value="Dr. Viswa" placeholder="Doctor Name" required>
+                        <input id="doctor-name" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border" value="Dr. Venkatesh" placeholder="Doctor Name" required>
                     </label>
                     <label class="block">
                         <span class="text-sm text-gray-600">Doctor Address:</span>
-                        <textarea id="doctor-address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border" rows="1" placeholder="Address">123, Clinic Road, City</textarea>
+                        <textarea id="doctor-address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border" rows="1" placeholder="Address">VRV Complex, Anusham Nagar, Udumalpet</textarea>
                     </label>
                 </div>
             </div>
 
             <!-- Invoice Items Table -->
-            <h3 class="font-semibold text-xl mb-3 text-gray-800">Treatment/Item Details</h3>
+            <h3 class="font-semibold text-xl mb-3 text-gray-800">Treatment</h3>
             <div class="overflow-x-auto mb-6">
                 <table id="invoice-items-table" class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-blue-50">
@@ -234,7 +234,7 @@
 
         <!-- Module 2: Ledger Tracker and Reports -->
         <div id="ledger-module" class="module hidden">
-            <h2 class="text-2xl font-bold mb-6 text-gray-800">2. Ledger Tracker & Reports</h2>
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">2. Reports</h2>
 
             <!-- Reports Summary -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
