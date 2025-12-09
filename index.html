@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VRV Dental Clinic</title>
+    <title>Dental Clinic Invoice and Ledger Tracker</title>
     <!-- Tailwind CSS CDN for styling and responsiveness -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Inter Font -->
@@ -63,7 +63,7 @@
 <body class="p-4 sm:p-8">
 
     <div id="loading" class="text-center py-20 text-gray-500">
-        Wait for the data, we're just making sure it brushed!
+        Connecting to Database... Please wait.
     </div>
 
     <!-- Login/Auth Module -->
@@ -90,7 +90,7 @@
 
     <div id="app-content" class="max-w-7xl mx-auto bg-white rounded-xl invoice-card p-6 sm:p-10 hidden">
         <div class="flex justify-between items-center mb-6 border-b pb-4">
-             <h1 class="text-3xl font-bold text-gray-800">VRV Management</h1>
+             <h1 class="text-3xl font-bold text-gray-800">Dental Clinic Management</h1>
              <button onclick="signOutUser()" class="px-3 py-1 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition duration-300">
                 Logout
              </button>
@@ -118,14 +118,14 @@
                     <p class="text-3xl sm:text-4xl font-extrabold text-blue-600">Clinic Invoice</p>
                 </div>
                 <div class="text-right space-y-1 w-full sm:w-auto">
-                    <!-- Editable Hospital Name -->
-                    <input id="hospital-name" type="text" class="text-xl sm:text-2xl font-bold text-gray-800 text-right p-1 border rounded-md w-full sm:w-auto" value="VRV Dental Clinic " onblur="saveHospitalDetails('VRV')">
-                    <!-- Editable Address -->
-                    <textarea id="hospital-address" class="text-sm text-gray-500 text-right p-1 border rounded-md w-full" rows="1" onblur="saveHospitalDetails('address')">Head Office Address, City</textarea>
-                    <!-- Editable Contact Info -->
+                    <!-- FIXED Hospital Name: VRV Dental Clinic -->
+                    <input id="hospital-name" type="text" class="text-xl sm:text-2xl font-bold text-gray-800 text-right p-1 border rounded-md w-full sm:w-auto bg-white" value="VRV Dental Clinic" readonly>
+                    <!-- FIXED Address -->
+                    <textarea id="hospital-address" class="text-sm text-gray-500 text-right p-1 border rounded-md w-full bg-white" rows="1" readonly>VRV Complex, Bypass road</textarea>
+                    <!-- FIXED Contact Info -->
                     <div class="flex flex-col items-end">
-                        <input id="hospital-phone" type="text" class="text-sm text-gray-500 text-right p-1 border rounded-md w-full sm:w-auto" placeholder="Phone: 98765 43210" onblur="saveHospitalDetails('phone')" value="98765 43210">
-                        <input id="hospital-email" type="email" class="text-sm text-gray-500 text-right p-1 border rounded-md mt-1 w-full sm:w-auto" placeholder="Email: info@clinic.com" onblur="saveHospitalDetails('email')" value="info@clinic.com">
+                        <input id="hospital-phone" type="text" class="text-sm text-gray-500 text-right p-1 border rounded-md w-full sm:w-auto bg-white" placeholder="Phone: 8667001677" readonly value="8667001677">
+                        <input id="hospital-email" type="email" class="text-sm text-gray-500 text-right p-1 border rounded-md mt-1 w-full sm:w-auto bg-white" placeholder="Email: Clincvrv@gmail.com" readonly value="Clincvrv@gmail.com">
                     </div>
                 </div>
             </div>
@@ -156,7 +156,7 @@
                             <input id="next-appointment-date" type="date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 p-2 border">
                         </label>
                         <label class="block">
-                            <span class="text-sm text-gray-600">Time:</span>
+                            <span class="text-sm text-gray-600">Time (12H):</span>
                             <input id="next-appointment-time" type="time" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 p-2 border">
                         </label>
                     </div>
@@ -629,55 +629,23 @@
          */
         window.loadHospitalDetails = async function() { // V: Defined on window scope
             if (!db || !userId) return;
-            try {
-                const docRef = getHospitalInfoDocRef(userId);
-                const docSnap = await getDoc(docRef); // V: Now getDoc is imported
-
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    document.getElementById('hospital-name').value = data.name || 'VRV Dental Clinic';
-                    document.getElementById('hospital-address').value = data.address || 'Head Office Address, City';
-                    document.getElementById('hospital-phone').value = data.phone || '98765 43210';
-                    document.getElementById('hospital-email').value = data.email || 'info@clinic.com';
-                }
-            } catch (e) {
-                console.warn("Could not load hospital details:", e);
-                // Use default values if loading fails
-            }
+            
+            // V: Hardcoded details are set directly in the HTML inputs and are used as the fallback in case of Firestore load failure.
+            // V: Since the user wants these FIXED and not overwritten by old Firestore data, we do NOT load Firestore data here.
+            
+            // To prevent potential overwrite by old Firestore data, we simply skip the reading part,
+            // relying only on the HTML's hardcoded values: VRV Dental Clinic, etc.
         }
 
         /**
          * Saves individual hospital details to Firestore on input blur.
+         * NOTE: This function is preserved for future features where hospital info might be editable in the Settings module.
          * @param {string} field - The field being updated (name, address, phone, or email).
          */
         window.saveHospitalDetails = async function(field) {
-            if (!db || !userId) return;
-            const docRef = getHospitalInfoDocRef(userId);
-            let update = {};
-            
-            switch(field) {
-                case 'name':
-                    update.name = document.getElementById('hospital-name').value.trim();
-                    break;
-                case 'address':
-                    update.address = document.getElementById('hospital-address').value.trim();
-                    break;
-                case 'phone':
-                    update.phone = document.getElementById('hospital-phone').value.trim();
-                    break;
-                case 'email':
-                    update.email = document.getElementById('hospital-email').value.trim();
-                    break;
-                default:
-                    return;
-            }
-            
-            try {
-                await setDoc(docRef, update, { merge: true });
-                // console.log(`Hospital detail '${field}' saved.`);
-            } catch (e) {
-                console.error(`Error saving hospital detail '${field}':`, e);
-            }
+            // Since the user wants these fields FIXED in the main UI, we skip saving from the main module.
+            // If the user wants to edit these, they must be directed to the Settings tab (which is not implemented yet for this purpose).
+            return; 
         }
 
         // --- Service Item Management (Settings Tab) ---
@@ -720,8 +688,6 @@
                     SERVICE_ITEMS_DATA = docSnap.data().items;
                 } else {
                     SERVICE_ITEMS_DATA = defaultItems;
-                    // Note: We don't save defaults here to avoid hitting Firestore on every new anonymous user.
-                    // The items are now part of the default client state until modified/saved.
                 }
                 renderServiceItemsList();
             } catch (e) {
@@ -1020,12 +986,23 @@
             const hospitalPhone = document.getElementById('hospital-phone').value;
             const hospitalEmail = document.getElementById('hospital-email').value;
 
+            // Function to convert 24H time (HH:MM) to 12H (HH:MM AM/PM)
+            const formatTime12H = (time24h) => {
+                if (!time24h) return 'N/A';
+                const [hour, minute] = time24h.split(':');
+                const h = parseInt(hour, 10);
+                const ampm = h >= 12 ? 'PM' : 'AM';
+                const h12 = h % 12 || 12;
+                return `${h12}:${minute} ${ampm}`;
+            };
+            
+            const formattedTime = formatTime12H(invoiceData.nextAppointment?.time);
 
             const apptDetails = invoiceData.nextAppointment && (invoiceData.nextAppointment.date || invoiceData.nextAppointment.time) ? 
                 `<div class="mt-4 p-3 border border-dashed border-yellow-500 rounded-md bg-yellow-50">
                     <h4 class="font-semibold text-sm text-yellow-800 mb-1">Next Appointment Details:</h4>
                     <p class="text-xs">Date: <span class="font-medium">${invoiceData.nextAppointment.date || 'N/A'}</span></p>
-                    <p class="text-xs">Time: <span class="font-medium">${invoiceData.nextAppointment.time || 'N/A'}</span></p>
+                    <p class="text-xs">Time: <span class="font-medium">${formattedTime}</span></p>
                 </div>` : '';
 
             // Build the printable HTML structure
