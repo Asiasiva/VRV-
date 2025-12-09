@@ -635,7 +635,7 @@
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    document.getElementById('hospital-name').value = data.name || 'Your Clinic Name';
+                    document.getElementById('hospital-name').value = data.name || 'VRV Dental Clinic';
                     document.getElementById('hospital-address').value = data.address || 'Head Office Address, City';
                     document.getElementById('hospital-phone').value = data.phone || '98765 43210';
                     document.getElementById('hospital-email').value = data.email || 'info@clinic.com';
@@ -657,7 +657,7 @@
             
             switch(field) {
                 case 'name':
-                    update.name = document.getElementById('hospital-name').value.trim(VRV);
+                    update.name = document.getElementById('hospital-name').value.trim();
                     break;
                 case 'address':
                     update.address = document.getElementById('hospital-address').value.trim();
